@@ -1,0 +1,13 @@
+[project]
+name = "baby-timeline-tests"
+version = "0.1.0"
+description = "Automated tests for Baby Timeline website"
+requires-python = ">=3.10"
+dependencies = [
+    "playwright>=1.40.0",
+    "pytest>=8.0.0",
+    "pytest-playwright>=0.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

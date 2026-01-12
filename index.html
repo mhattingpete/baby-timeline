@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baby Timeline - Danmark</title>
+  <meta name="description" content="Track your baby's development milestones with Danish health guidelines">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Setup Modal (shown on first visit) -->
+  <div id="setup-modal" class="modal">
+    <div class="modal-content">
+      <h1>Baby Timeline</h1>
+      <p class="modal-subtitle">Følg dit barns udvikling med danske sundhedsanbefalinger</p>
+
+      <form id="setup-form">
+        <div class="form-group">
+          <label for="baby-name">Barnets navn</label>
+          <input type="text" id="baby-name" placeholder="f.eks. Emma" required>
+        </div>
+
+        <div class="form-group">
+          <label for="birth-date">Fødselsdato</label>
+          <input type="date" id="birth-date" required>
+        </div>
+
+        <div class="form-group">
+          <label for="feeding-type">Ernæring</label>
+          <select id="feeding-type">
+            <option value="breastfed">Ammet</option>
+            <option value="formula">Modermælkserstatning</option>
+            <option value="mixed">Blandet</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Start</button>
+      </form>
+
+      <p class="modal-footer">Data gemmes kun lokalt på din enhed</p>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="hidden">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="baby-info">
+          <h1 id="header-name">Baby</h1>
+          <p id="header-age" class="age-display">0 uger</p>
+        </div>
+        <button id="settings-btn" class="btn-icon" aria-label="Indstillinger">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Reminders Banner -->
+    <div id="reminders-banner" class="reminders-banner hidden">
+      <div class="reminder-item" id="d-vitamin-reminder">
+        <span class="reminder-icon">💊</span>
+        <span>Husk D-vitamin dråber!</span>
+      </div>
+    </div>
+
+    <!-- Dashboard: What to Expect Now -->
+    <section class="dashboard">
+      <h2>Hvad kan du forvente nu</h2>
+
+      <div class="dashboard-cards">
+        <!-- Current Milestones -->
+        <div class="card card-current">
+          <h3>Aktuelle milepæle</h3>
+          <div id="current-milestones" class="milestone-list">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <!-- Sleep -->
+        <div class="card card-sleep">
+          <h3>Søvn</h3>
+          <div id="sleep-info">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <!-- Next Health Event -->
+        <div class="card card-health">
+          <h3>Næste sundhedsaftale</h3>
+          <div id="next-health">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <!-- Feeding -->
+        <div class="card card-feeding">
+          <h3>Ernæring</h3>
+          <div id="feeding-info">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Tabs -->
+    <nav class="tabs">
+      <button class="tab" data-category="week">Uge</button>
+      <button class="tab active" data-category="all">Alle</button>
+      <button class="tab" data-category="motor">Motorik</button>
+      <button class="tab" data-category="speech">Sprog</button>
+      <button class="tab" data-category="social">Social</button>
+      <button class="tab" data-category="health">Sundhed</button>
+      <button class="tab" data-category="guides">Guides</button>
+    </nav>
+
+    <!-- Week View Section -->
+    <section id="week-view-section" class="week-view-section hidden">
+      <!-- Week Navigator -->
+      <div class="week-navigator">
+        <button id="week-prev" class="btn-nav" aria-label="Forrige uge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <div class="week-display">
+          <h2 id="week-title">Uge 0</h2>
+          <p id="week-subtitle" class="week-subtitle">Dag 1-7</p>
+        </div>
+        <button id="week-next" class="btn-nav" aria-label="Næste uge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+      <button id="week-today" class="btn-today hidden">I dag</button>
+
+      <!-- Current Week Indicator -->
+      <div id="current-week-badge" class="current-week-badge hidden">
+        ⭐ Din baby er her
+      </div>
+
+      <!-- Week Content Container -->
+      <div id="week-content" class="week-content">
+        <!-- Day cards or weekly summary filled by JS -->
+      </div>
+
+      <!-- Notes Section -->
+      <div id="week-notes" class="week-notes">
+        <!-- Tips and highlights filled by JS -->
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="timeline-section">
+      <div id="timeline" class="timeline">
+        <!-- Filled by JS -->
+      </div>
+    </section>
+
+    <!-- Guides Section (hidden by default) -->
+    <section id="guides-section" class="guides-section hidden">
+      <!-- Poop Guide -->
+      <div class="guide-card" id="poop-guide">
+        <h3>Afføringsguide</h3>
+        <div id="poop-content">
+          <!-- Filled by JS based on feeding type -->
+        </div>
+      </div>
+
+      <!-- Outdoor Sleep Guide -->
+      <div class="guide-card" id="outdoor-sleep-guide">
+        <h3>Udesovning i barnevogn</h3>
+        <div id="outdoor-sleep-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Growth Charts Info -->
+      <div class="guide-card" id="growth-guide">
+        <h3>Vækstkurver</h3>
+        <div class="guide-content">
+          <p>Sundhedsstyrelsen anbefaler WHO's vækstkurver til børn 0-5 år.</p>
+          <p><strong>Normal område:</strong> p3 - p97</p>
+          <p class="guide-link">
+            <a href="https://www.vækstkurver.dk/" target="_blank" rel="noopener">
+              Se danske vækstkurver →
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Health Guides Section -->
+      <h3 class="guides-section-title">Vigtig sundhedsinformation</h3>
+
+      <!-- Fever Guide -->
+      <div class="guide-card guide-card-critical" id="fever-guide">
+        <h3>Feber hos spædbørn</h3>
+        <div id="fever-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- SIDS Prevention -->
+      <div class="guide-card guide-card-critical" id="sids-guide">
+        <h3>Forebyg vuggedød</h3>
+        <div id="sids-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Jaundice Guide -->
+      <div class="guide-card" id="jaundice-guide">
+        <h3>Gulsot hos nyfødte</h3>
+        <div id="jaundice-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Colic Guide -->
+      <div class="guide-card" id="colic-guide">
+        <h3>Spædbarnskolik</h3>
+        <div id="colic-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Umbilical Care Guide -->
+      <div class="guide-card" id="umbilical-guide">
+        <h3>Navlepleje</h3>
+        <div id="umbilical-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Sun Protection Guide -->
+      <div class="guide-card" id="sun-guide">
+        <h3>Solbeskyttelse</h3>
+        <div id="sun-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Allergy Prevention Guide -->
+      <div class="guide-card" id="allergy-guide">
+        <h3>Allergiforebyggelse</h3>
+        <div id="allergy-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress Section -->
+    <section class="progress-section">
+      <h2>Fremskridt</h2>
+      <div id="progress-bars" class="progress-bars">
+        <!-- Filled by JS -->
+      </div>
+      <p class="progress-note">Milepæle er vejledende - alle børn udvikler sig i forskelligt tempo</p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Data fra <a href="https://www.sundhed.dk" target="_blank" rel="noopener">sundhed.dk</a> og <a href="https://www.sst.dk" target="_blank" rel="noopener">Sundhedsstyrelsen</a></p>
+      <p class="footer-small">Denne app erstatter ikke professionel rådgivning. Kontakt sundhedsplejerske eller læge ved bekymringer.</p>
+    </footer>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Indstillinger</h2>
+        <button id="close-settings" class="btn-icon" aria-label="Luk">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="edit-name">Barnets navn</label>
+          <input type="text" id="edit-name">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-birth-date">Fødselsdato</label>
+          <input type="date" id="edit-birth-date">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-feeding-type">Ernæring</label>
+          <select id="edit-feeding-type">
+            <option value="breastfed">Ammet</option>
+            <option value="formula">Modermælkserstatning</option>
+            <option value="mixed">Blandet</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Gem</button>
+          <button type="button" id="reset-data" class="btn btn-danger">Nulstil alle data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="data/milestones.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
