@@ -152,6 +152,18 @@ function getHealthTipsForAge(weekNumber) {
       titleDa: 'Navlepleje',
       textDa: 'Hold navlestumpen ren og tør. Den falder af inden for 1-3 uger.'
     });
+    tips.push({
+      type: 'info',
+      icon: '✅',
+      titleDa: 'Tjek Baby - Trivsel',
+      textDa: 'Tegn på trivsel: Rolig mellem måltider, let at trøste, interesseret i at spise. Kontakt sundhedsplejerske ved vedvarende uro.'
+    });
+    tips.push({
+      type: 'info',
+      icon: '🤱',
+      titleDa: 'Amning',
+      textDa: 'Læg baby til brystet 10-12 gange i døgnet. Brug begge bryster og lyt efter synkelyde.'
+    });
   }
 
   // Weeks 1-4 (first month)
@@ -162,6 +174,14 @@ function getHealthTipsForAge(weekNumber) {
       titleDa: 'Sikker søvn',
       textDa: 'Læg altid baby på ryggen. Ingen løse ting i sengen.'
     });
+    if (weekNumber <= 2) {
+      tips.push({
+        type: 'info',
+        icon: '✅',
+        titleDa: 'Tjek Baby - Trivsel',
+        textDa: 'Er baby svær at trøste eller ikke interesseret i mad? Kontakt sundhedsplejerske eller fødested.'
+      });
+    }
     if (weekNumber === 2) {
       tips.push({
         type: 'info',
