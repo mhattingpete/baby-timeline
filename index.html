@@ -67,6 +67,19 @@
       </div>
     </div>
 
+    <!-- Quick View (Simplified Mode) -->
+    <section id="quick-view" class="quick-view hidden">
+      <div class="quick-view-card">
+        <div class="quick-view-header">
+          <h2>I dag</h2>
+          <span id="quick-view-age" class="quick-view-age"></span>
+        </div>
+        <div id="quick-view-content" class="quick-view-content">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </section>
+
     <!-- Dashboard: What to Expect Now -->
     <section class="dashboard">
       <h2>Hvad kan du forvente nu</h2>
@@ -74,7 +87,14 @@
       <div class="dashboard-cards">
         <!-- Current Milestones -->
         <div class="card card-current">
-          <h3>Aktuelle milepæle</h3>
+          <div class="card-header-with-action">
+            <h3>Aktuelle milepæle</h3>
+            <button id="quick-mark-all" class="btn-quick-action" title="Markér alle som opnået">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
           <div id="current-milestones" class="milestone-list">
             <!-- Filled by JS -->
           </div>
@@ -108,13 +128,25 @@
 
     <!-- Category Tabs -->
     <nav class="tabs">
-      <button class="tab" data-category="week">Uge</button>
-      <button class="tab active" data-category="all">Alle</button>
-      <button class="tab" data-category="motor">Motorik</button>
-      <button class="tab" data-category="speech">Sprog</button>
-      <button class="tab" data-category="social">Social</button>
-      <button class="tab" data-category="health">Sundhed</button>
-      <button class="tab" data-category="guides">Guides</button>
+      <div class="tabs-main">
+        <button class="tab" data-category="week">Uge</button>
+        <button class="tab active" data-category="all">Milepæle</button>
+        <button class="tab" data-category="health">Sundhed</button>
+        <button class="tab" data-category="guides">Guides</button>
+      </div>
+      <div class="tabs-more">
+        <button class="tab-more-btn" id="more-tabs-btn" aria-label="Flere kategorier" aria-expanded="false">
+          Mere
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="tabs-dropdown hidden" id="tabs-dropdown">
+          <button class="tab-dropdown-item" data-category="motor">Motorik</button>
+          <button class="tab-dropdown-item" data-category="speech">Sprog</button>
+          <button class="tab-dropdown-item" data-category="social">Social</button>
+        </div>
+      </div>
     </nav>
 
     <!-- Week View Section -->
@@ -137,6 +169,12 @@
         </button>
       </div>
       <button id="week-today" class="btn-today hidden">I dag</button>
+
+      <!-- View Toggle -->
+      <div class="week-view-toggle">
+        <button id="week-view-detailed" class="view-toggle-btn active">Detaljeret</button>
+        <button id="week-view-simple" class="view-toggle-btn">Overblik</button>
+      </div>
 
       <!-- Current Week Indicator -->
       <div id="current-week-badge" class="current-week-badge hidden">
@@ -163,92 +201,145 @@
 
     <!-- Guides Section (hidden by default) -->
     <section id="guides-section" class="guides-section hidden">
-      <!-- Poop Guide -->
-      <div class="guide-card" id="poop-guide">
-        <h3>Afføringsguide</h3>
-        <div id="poop-content">
-          <!-- Filled by JS based on feeding type -->
+      <!-- Age-relevant guides banner -->
+      <div id="relevant-guides-banner" class="relevant-guides-banner">
+        <h3>Relevant for dig nu</h3>
+        <div id="relevant-guides" class="relevant-guides">
+          <!-- Filled by JS based on baby's age -->
         </div>
       </div>
 
-      <!-- Outdoor Sleep Guide -->
-      <div class="guide-card" id="outdoor-sleep-guide">
-        <h3>Udesovning i barnevogn</h3>
-        <div id="outdoor-sleep-content">
-          <!-- Filled by JS -->
+      <!-- Critical Guides - Always visible -->
+      <div class="guide-group guide-group-critical">
+        <button class="guide-group-header" data-group="critical" aria-expanded="true">
+          <span class="guide-group-icon">⚠️</span>
+          <span class="guide-group-title">Vigtig sundhedsinformation</span>
+          <svg class="guide-group-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="guide-group-content" id="guide-group-critical">
+          <!-- Fever Guide -->
+          <div class="guide-card guide-card-critical" id="fever-guide">
+            <h3>Feber hos spædbørn</h3>
+            <div id="fever-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- SIDS Prevention -->
+          <div class="guide-card guide-card-critical" id="sids-guide">
+            <h3>Forebyg vuggedød</h3>
+            <div id="sids-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Growth Charts Info -->
-      <div class="guide-card" id="growth-guide">
-        <h3>Vækstkurver</h3>
-        <div class="guide-content">
-          <p>Sundhedsstyrelsen anbefaler WHO's vækstkurver til børn 0-5 år.</p>
-          <p><strong>Normal område:</strong> p3 - p97</p>
-          <p class="guide-link">
-            <a href="https://www.vækstkurver.dk/" target="_blank" rel="noopener">
-              Se danske vækstkurver →
-            </a>
-          </p>
+      <!-- Newborn Guides -->
+      <div class="guide-group" id="guide-group-newborn-wrapper">
+        <button class="guide-group-header" data-group="newborn" aria-expanded="false">
+          <span class="guide-group-icon">👶</span>
+          <span class="guide-group-title">Nyfødt (0-4 uger)</span>
+          <svg class="guide-group-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="guide-group-content collapsed" id="guide-group-newborn">
+          <!-- Jaundice Guide -->
+          <div class="guide-card" id="jaundice-guide">
+            <h3>Gulsot hos nyfødte</h3>
+            <div id="jaundice-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Umbilical Care Guide -->
+          <div class="guide-card" id="umbilical-guide">
+            <h3>Navlepleje</h3>
+            <div id="umbilical-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Colic Guide -->
+          <div class="guide-card" id="colic-guide">
+            <h3>Spædbarnskolik</h3>
+            <div id="colic-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Health Guides Section -->
-      <h3 class="guides-section-title">Vigtig sundhedsinformation</h3>
+      <!-- Daily Care Guides -->
+      <div class="guide-group">
+        <button class="guide-group-header" data-group="daily" aria-expanded="false">
+          <span class="guide-group-icon">🍼</span>
+          <span class="guide-group-title">Daglig pleje</span>
+          <svg class="guide-group-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="guide-group-content collapsed" id="guide-group-daily">
+          <!-- Poop Guide -->
+          <div class="guide-card" id="poop-guide">
+            <h3>Afføringsguide</h3>
+            <div id="poop-content">
+              <!-- Filled by JS based on feeding type -->
+            </div>
+          </div>
 
-      <!-- Fever Guide -->
-      <div class="guide-card guide-card-critical" id="fever-guide">
-        <h3>Feber hos spædbørn</h3>
-        <div id="fever-content">
-          <!-- Filled by JS -->
+          <!-- Outdoor Sleep Guide -->
+          <div class="guide-card" id="outdoor-sleep-guide">
+            <h3>Udesovning i barnevogn</h3>
+            <div id="outdoor-sleep-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Growth Charts Info -->
+          <div class="guide-card" id="growth-guide">
+            <h3>Vækstkurver</h3>
+            <div class="guide-content">
+              <p>Sundhedsstyrelsen anbefaler WHO's vækstkurver til børn 0-5 år.</p>
+              <p><strong>Normal område:</strong> p3 - p97</p>
+              <p class="guide-link">
+                <a href="https://www.vækstkurver.dk/" target="_blank" rel="noopener">
+                  Se danske vækstkurver →
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- SIDS Prevention -->
-      <div class="guide-card guide-card-critical" id="sids-guide">
-        <h3>Forebyg vuggedød</h3>
-        <div id="sids-content">
-          <!-- Filled by JS -->
-        </div>
-      </div>
+      <!-- Environment & Food Guides -->
+      <div class="guide-group" id="guide-group-environment-wrapper">
+        <button class="guide-group-header" data-group="environment" aria-expanded="false">
+          <span class="guide-group-icon">🌿</span>
+          <span class="guide-group-title">Miljø & Mad</span>
+          <svg class="guide-group-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="guide-group-content collapsed" id="guide-group-environment">
+          <!-- Sun Protection Guide -->
+          <div class="guide-card" id="sun-guide">
+            <h3>Solbeskyttelse</h3>
+            <div id="sun-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
 
-      <!-- Jaundice Guide -->
-      <div class="guide-card" id="jaundice-guide">
-        <h3>Gulsot hos nyfødte</h3>
-        <div id="jaundice-content">
-          <!-- Filled by JS -->
-        </div>
-      </div>
-
-      <!-- Colic Guide -->
-      <div class="guide-card" id="colic-guide">
-        <h3>Spædbarnskolik</h3>
-        <div id="colic-content">
-          <!-- Filled by JS -->
-        </div>
-      </div>
-
-      <!-- Umbilical Care Guide -->
-      <div class="guide-card" id="umbilical-guide">
-        <h3>Navlepleje</h3>
-        <div id="umbilical-content">
-          <!-- Filled by JS -->
-        </div>
-      </div>
-
-      <!-- Sun Protection Guide -->
-      <div class="guide-card" id="sun-guide">
-        <h3>Solbeskyttelse</h3>
-        <div id="sun-content">
-          <!-- Filled by JS -->
-        </div>
-      </div>
-
-      <!-- Allergy Prevention Guide -->
-      <div class="guide-card" id="allergy-guide">
-        <h3>Allergiforebyggelse</h3>
-        <div id="allergy-content">
-          <!-- Filled by JS -->
+          <!-- Allergy Prevention Guide -->
+          <div class="guide-card" id="allergy-guide">
+            <h3>Allergiforebyggelse</h3>
+            <div id="allergy-content">
+              <!-- Filled by JS -->
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -300,6 +391,14 @@
             <option value="formula">Modermælkserstatning</option>
             <option value="mixed">Blandet</option>
           </select>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="edit-simple-view">
+            <span>Forenklet visning</span>
+          </label>
+          <p class="form-hint">Viser kun de vigtigste oplysninger</p>
         </div>
 
         <div class="form-actions">

@@ -12,7 +12,9 @@ let state = {
   baby: null,
   achievements: {},
   currentCategory: 'all',
-  viewedWeek: null  // Week being viewed in week view (null = current week)
+  viewedWeek: null,  // Week being viewed in week view (null = current week)
+  simpleView: false,  // Simplified view mode
+  weekViewMode: 'detailed'  // 'detailed' or 'simple'
 };
 
 // Constants
@@ -150,6 +152,18 @@ function getHealthTipsForAge(weekNumber) {
       titleDa: 'Navlepleje',
       textDa: 'Hold navlestumpen ren og tør. Den falder af inden for 1-3 uger.'
     });
+    tips.push({
+      type: 'info',
+      icon: '✅',
+      titleDa: 'Tjek Baby - Trivsel',
+      textDa: 'Tegn på trivsel: Rolig mellem måltider, let at trøste, interesseret i at spise. Kontakt sundhedsplejerske ved vedvarende uro.'
+    });
+    tips.push({
+      type: 'info',
+      icon: '🤱',
+      titleDa: 'Amning',
+      textDa: 'Læg baby til brystet 10-12 gange i døgnet. Brug begge bryster og lyt efter synkelyde.'
+    });
   }
 
   // Weeks 1-4 (first month)
@@ -160,6 +174,14 @@ function getHealthTipsForAge(weekNumber) {
       titleDa: 'Sikker søvn',
       textDa: 'Læg altid baby på ryggen. Ingen løse ting i sengen.'
     });
+    if (weekNumber <= 2) {
+      tips.push({
+        type: 'info',
+        icon: '✅',
+        titleDa: 'Tjek Baby - Trivsel',
+        textDa: 'Er baby svær at trøste eller ikke interesseret i mad? Kontakt sundhedsplejerske eller fødested.'
+      });
+    }
     if (weekNumber === 2) {
       tips.push({
         type: 'info',
@@ -320,7 +342,8 @@ function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       baby: state.baby,
-      achievements: state.achievements
+      achievements: state.achievements,
+      simpleView: state.simpleView
     }));
   } catch (e) {
     console.error('Failed to save state:', e);
@@ -499,6 +522,117 @@ function renderFeedingInfo(ageMonths) {
   container.appendChild(wrapper);
 }
 
+// ============================================
+// Quick View Functions (Simplified Mode)
+// ============================================
+
+function renderQuickView() {
+  if (!state.baby) return;
+
+  const quickViewSection = document.getElementById('quick-view');
+  const dashboard = document.querySelector('.dashboard');
+  const quickViewAge = document.getElementById('quick-view-age');
+  const container = document.getElementById('quick-view-content');
+
+  if (state.simpleView) {
+    quickViewSection.classList.remove('hidden');
+    dashboard.classList.add('hidden');
+    quickViewAge.textContent = formatAge(state.baby.birthDate);
+    clearElement(container);
+
+    const ageWeeks = getAgeInWeeks(state.baby.birthDate);
+    const ageMonths = getAgeInMonths(state.baby.birthDate);
+
+    // Current milestone highlight
+    const allMilestones = [
+      ...MILESTONES.motor,
+      ...MILESTONES.speech,
+      ...MILESTONES.social
+    ];
+
+    const currentMilestones = allMilestones
+      .filter(m => ageWeeks >= m.ageWeeksMin && ageWeeks <= m.ageWeeksMax)
+      .filter(m => !state.achievements[m.id])
+      .slice(0, 2);
+
+    // Milestone section
+    if (currentMilestones.length > 0) {
+      const milestonesDiv = createElement('div', 'quick-section');
+      milestonesDiv.appendChild(createElement('h4', 'quick-section-title', 'Milepæle at kigge efter'));
+
+      currentMilestones.forEach(m => {
+        const item = createElement('div', 'quick-milestone-item');
+        item.appendChild(createElement('span', 'quick-milestone-dot', '●'));
+        item.appendChild(createElement('span', 'quick-milestone-text', m.titleDa));
+        milestonesDiv.appendChild(item);
+      });
+
+      container.appendChild(milestonesDiv);
+    }
+
+    // Next health appointment
+    const upcoming = HEALTH_CHECKUPS.filter(h => h.ageWeeks > ageWeeks);
+    if (upcoming.length > 0) {
+      const next = upcoming[0];
+      const weeksUntil = next.ageWeeks - ageWeeks;
+
+      const healthDiv = createElement('div', 'quick-section');
+      healthDiv.appendChild(createElement('h4', 'quick-section-title', 'Næste sundhedsaftale'));
+
+      const healthItem = createElement('div', 'quick-health-item');
+      healthItem.appendChild(createElement('span', 'quick-health-icon', '🏥'));
+      const healthText = createElement('div', 'quick-health-text');
+      healthText.appendChild(createElement('span', 'quick-health-title', next.titleDa));
+      healthText.appendChild(createElement('span', 'quick-health-when', `Om ${weeksToLabel(weeksUntil)}`));
+      healthItem.appendChild(healthText);
+      healthDiv.appendChild(healthItem);
+
+      container.appendChild(healthDiv);
+    }
+
+    // Sleep recommendation
+    const sleepRec = SLEEP_RECOMMENDATIONS.find(r =>
+      ageMonths >= r.ageMonthsMin && ageMonths <= r.ageMonthsMax
+    );
+    if (sleepRec) {
+      const sleepDiv = createElement('div', 'quick-section');
+      sleepDiv.appendChild(createElement('h4', 'quick-section-title', 'Søvn'));
+
+      const sleepItem = createElement('div', 'quick-sleep-item');
+      sleepItem.appendChild(createElement('span', 'quick-sleep-hours', `${sleepRec.recommendedMin}-${sleepRec.recommendedMax}`));
+      sleepItem.appendChild(createElement('span', 'quick-sleep-label', 'timer/døgn'));
+      sleepDiv.appendChild(sleepItem);
+
+      container.appendChild(sleepDiv);
+    }
+
+    // Age-relevant health tip
+    const tips = getHealthTipsForAge(ageWeeks);
+    if (tips.length > 0) {
+      const tip = tips[0]; // Just show the most important tip
+      const tipDiv = createElement('div', 'quick-section quick-tip');
+      tipDiv.appendChild(createElement('span', 'quick-tip-icon', tip.icon));
+      tipDiv.appendChild(createElement('span', 'quick-tip-text', tip.textDa));
+      container.appendChild(tipDiv);
+    }
+
+    // Quick action button
+    const actionDiv = createElement('div', 'quick-actions');
+    const viewAllBtn = createElement('button', 'btn btn-secondary', 'Se detaljeret visning');
+    viewAllBtn.addEventListener('click', () => {
+      state.simpleView = false;
+      saveState();
+      renderAll();
+    });
+    actionDiv.appendChild(viewAllBtn);
+    container.appendChild(actionDiv);
+
+  } else {
+    quickViewSection.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+  }
+}
+
 function renderTimeline() {
   if (!state.baby) return;
 
@@ -575,14 +709,35 @@ function createMilestoneCard(milestone, status) {
 
   const categoryClass = milestone.category || 'motor';
 
-  const card = createElement('div', `milestone-card milestone-${status} category-${categoryClass}`);
+  // Check if upcoming milestone is coming soon (within 2 weeks)
+  let extraClass = '';
+  const ageWeeks = state.baby ? getAgeInWeeks(state.baby.birthDate) : 0;
+  if (status === 'upcoming' && milestone.ageWeeksMin - ageWeeks <= 2) {
+    extraClass = ' milestone-upcoming-soon';
+  }
+
+  const card = createElement('div', `milestone-card milestone-${status}${extraClass} category-${categoryClass}`);
   card.dataset.id = milestone.id;
 
   const checkbox = createElement('div', `milestone-checkbox ${status === 'achieved' ? 'checked' : ''}`);
   if (status === 'achieved') checkbox.textContent = '✓';
 
   const content = createElement('div', 'milestone-content');
-  content.appendChild(createElement('span', 'milestone-category-tag', categoryLabels[categoryClass]));
+
+  // Category tag and priority indicator row
+  const tagRow = createElement('div', 'milestone-tag-row');
+  tagRow.appendChild(createElement('span', 'milestone-category-tag', categoryLabels[categoryClass]));
+
+  // Add priority indicator for current, overdue, and upcoming soon
+  if (status === 'current') {
+    tagRow.appendChild(createElement('span', 'milestone-priority milestone-priority-current', 'Nu'));
+  } else if (status === 'overdue') {
+    tagRow.appendChild(createElement('span', 'milestone-priority milestone-priority-overdue', 'Forsinket'));
+  } else if (status === 'upcoming' && milestone.ageWeeksMin - ageWeeks <= 2) {
+    tagRow.appendChild(createElement('span', 'milestone-priority milestone-priority-soon', 'Snart'));
+  }
+
+  content.appendChild(tagRow);
   content.appendChild(createElement('h4', 'milestone-title', milestone.titleDa));
   content.appendChild(createElement('p', 'milestone-desc', milestone.descriptionDa));
   content.appendChild(createElement('span', 'milestone-age',
@@ -631,6 +786,7 @@ function renderHealthTimeline(container, ageWeeks) {
 }
 
 function renderGuides() {
+  renderRelevantGuides();
   renderPoopGuide();
   renderOutdoorSleepGuide();
   renderFeverGuide();
@@ -1194,27 +1350,96 @@ function renderWeekView() {
   // Get data for this week
   const weekInfo = getWeekData(viewedWeek);
 
-  // Render content based on type
+  // Render content based on type and view mode
   const contentContainer = document.getElementById('week-content');
   const notesContainer = document.getElementById('week-notes');
   clearElement(contentContainer);
   clearElement(notesContainer);
 
-  if (weekInfo.type === 'days') {
-    renderDayCards(contentContainer, weekInfo.data, currentWeek === viewedWeek ? currentDay : null);
-    renderWeekNotes(notesContainer, weekInfo.data, currentWeek === viewedWeek ? currentDay : null);
-  } else if (weekInfo.type === 'week') {
-    renderWeekSummary(contentContainer, weekInfo.data);
-    renderWeekHighlights(notesContainer, weekInfo.data);
-  } else if (weekInfo.type === 'month') {
-    renderMonthSummary(contentContainer, weekInfo.data, viewedWeek);
-    renderMonthHighlights(notesContainer, weekInfo.data);
+  const isSimpleMode = state.weekViewMode === 'simple';
+
+  if (isSimpleMode) {
+    renderWeekSimpleSummary(contentContainer, weekInfo, viewedWeek);
   } else {
-    renderBeyondData(contentContainer, notesContainer, viewedWeek, weekInfo.monthNumber);
+    if (weekInfo.type === 'days') {
+      renderDayCards(contentContainer, weekInfo.data, currentWeek === viewedWeek ? currentDay : null);
+      renderWeekNotes(notesContainer, weekInfo.data, currentWeek === viewedWeek ? currentDay : null);
+    } else if (weekInfo.type === 'week') {
+      renderWeekSummary(contentContainer, weekInfo.data);
+      renderWeekHighlights(notesContainer, weekInfo.data);
+    } else if (weekInfo.type === 'month') {
+      renderMonthSummary(contentContainer, weekInfo.data, viewedWeek);
+      renderMonthHighlights(notesContainer, weekInfo.data);
+    } else {
+      renderBeyondData(contentContainer, notesContainer, viewedWeek, weekInfo.monthNumber);
+    }
   }
 
   // Add health tips for the viewed week
   renderHealthTipsBox(notesContainer, viewedWeek);
+}
+
+function renderWeekSimpleSummary(container, weekInfo, weekNumber) {
+  const summaryCard = createElement('div', 'week-simple-summary');
+
+  // Key stats row
+  const statsRow = createElement('div', 'simple-stats-row');
+
+  // Wet diapers
+  let wetMin = 4, wetMax = 6;
+  let feedMin = 6, feedMax = 12;
+  let sleepMin = 14, sleepMax = 17;
+
+  if (weekInfo.type === 'days') {
+    // Average from week 0 days
+    wetMin = 3; wetMax = 6;
+    feedMin = 8; feedMax = 12;
+    sleepMin = 16; sleepMax = 17;
+  } else if (weekInfo.type === 'week' || weekInfo.type === 'month') {
+    const data = weekInfo.data;
+    wetMin = data.wetDiapers?.min || 4;
+    wetMax = data.wetDiapers?.max || 6;
+    feedMin = data.feedings?.min || 6;
+    feedMax = data.feedings?.max || 8;
+    sleepMin = data.sleepHours?.min || 14;
+    sleepMax = data.sleepHours?.max || 17;
+  }
+
+  // Create stat items
+  const wetStat = createElement('div', 'simple-stat');
+  wetStat.appendChild(createElement('span', 'simple-stat-icon', '💧'));
+  wetStat.appendChild(createElement('span', 'simple-stat-value', `${wetMin}-${wetMax}`));
+  wetStat.appendChild(createElement('span', 'simple-stat-label', 'bleer'));
+  statsRow.appendChild(wetStat);
+
+  const feedStat = createElement('div', 'simple-stat');
+  feedStat.appendChild(createElement('span', 'simple-stat-icon', '🍼'));
+  feedStat.appendChild(createElement('span', 'simple-stat-value', `${feedMin}-${feedMax}`));
+  feedStat.appendChild(createElement('span', 'simple-stat-label', 'måltider'));
+  statsRow.appendChild(feedStat);
+
+  const sleepStat = createElement('div', 'simple-stat');
+  sleepStat.appendChild(createElement('span', 'simple-stat-icon', '😴'));
+  sleepStat.appendChild(createElement('span', 'simple-stat-value', `${sleepMin}-${sleepMax}`));
+  sleepStat.appendChild(createElement('span', 'simple-stat-label', 'timer søvn'));
+  statsRow.appendChild(sleepStat);
+
+  summaryCard.appendChild(statsRow);
+
+  // Key highlight
+  if (weekInfo.type === 'week' && weekInfo.data.highlightsDa?.length > 0) {
+    const highlight = createElement('div', 'simple-highlight');
+    highlight.appendChild(createElement('span', 'simple-highlight-icon', '✨'));
+    highlight.appendChild(createElement('span', 'simple-highlight-text', weekInfo.data.highlightsDa[0]));
+    summaryCard.appendChild(highlight);
+  } else if (weekInfo.type === 'month' && weekInfo.data.highlightsDa?.length > 0) {
+    const highlight = createElement('div', 'simple-highlight');
+    highlight.appendChild(createElement('span', 'simple-highlight-icon', '✨'));
+    highlight.appendChild(createElement('span', 'simple-highlight-text', weekInfo.data.highlightsDa[0]));
+    summaryCard.appendChild(highlight);
+  }
+
+  container.appendChild(summaryCard);
 }
 
 function renderDayCards(container, days, currentDay) {
@@ -1541,6 +1766,40 @@ function toggleMilestone(id) {
   renderProgress();
 }
 
+function markAllCurrentMilestones() {
+  if (!state.baby) return;
+
+  const ageWeeks = getAgeInWeeks(state.baby.birthDate);
+  const allMilestones = [
+    ...MILESTONES.motor,
+    ...MILESTONES.speech,
+    ...MILESTONES.social
+  ];
+
+  const currentMilestones = allMilestones
+    .filter(m => ageWeeks >= m.ageWeeksMin && ageWeeks <= m.ageWeeksMax)
+    .filter(m => !state.achievements[m.id]);
+
+  if (currentMilestones.length === 0) return;
+
+  // Mark all current milestones as achieved
+  currentMilestones.forEach(m => {
+    state.achievements[m.id] = new Date().toISOString();
+  });
+
+  saveState();
+  renderTimeline();
+  renderDashboard();
+  renderProgress();
+
+  // Show brief feedback
+  const btn = document.getElementById('quick-mark-all');
+  if (btn) {
+    btn.classList.add('btn-success-flash');
+    setTimeout(() => btn.classList.remove('btn-success-flash'), 500);
+  }
+}
+
 function handleSetupSubmit(e) {
   e.preventDefault();
 
@@ -1565,6 +1824,7 @@ function handleSettingsSubmit(e) {
   state.baby.name = document.getElementById('edit-name').value.trim();
   state.baby.birthDate = document.getElementById('edit-birth-date').value;
   state.baby.feedingType = document.getElementById('edit-feeding-type').value;
+  state.simpleView = document.getElementById('edit-simple-view').checked;
 
   saveState();
   document.getElementById('settings-modal').classList.add('hidden');
@@ -1579,12 +1839,17 @@ function handleResetData() {
 }
 
 function handleTabClick(e) {
-  if (!e.target.classList.contains('tab')) return;
+  const tab = e.target.closest('.tab, .tab-dropdown-item');
+  if (!tab) return;
 
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  e.target.classList.add('active');
+  // Close dropdown if open
+  const dropdown = document.getElementById('tabs-dropdown');
+  if (dropdown) dropdown.classList.add('hidden');
 
-  state.currentCategory = e.target.dataset.category;
+  document.querySelectorAll('.tab, .tab-dropdown-item').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  state.currentCategory = tab.dataset.category;
 
   // Handle week view visibility
   const weekViewSection = document.getElementById('week-view-section');
@@ -1604,12 +1869,118 @@ function handleTabClick(e) {
   }
 }
 
+function handleMoreTabsClick(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('tabs-dropdown');
+  const btn = document.getElementById('more-tabs-btn');
+  const isHidden = dropdown.classList.contains('hidden');
+
+  dropdown.classList.toggle('hidden');
+  btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+}
+
+function handleGuideGroupToggle(e) {
+  const header = e.target.closest('.guide-group-header');
+  if (!header) return;
+
+  const group = header.dataset.group;
+  const content = document.getElementById(`guide-group-${group}`);
+  const isExpanded = header.getAttribute('aria-expanded') === 'true';
+
+  header.setAttribute('aria-expanded', !isExpanded);
+  content.classList.toggle('collapsed');
+}
+
+function handleWeekViewToggle(mode) {
+  state.weekViewMode = mode;
+
+  // Update button states
+  document.getElementById('week-view-detailed').classList.toggle('active', mode === 'detailed');
+  document.getElementById('week-view-simple').classList.toggle('active', mode === 'simple');
+
+  renderWeekView();
+}
+
+function renderRelevantGuides() {
+  const container = document.getElementById('relevant-guides');
+  if (!container || !state.baby) return;
+
+  clearElement(container);
+
+  const ageWeeks = getAgeInWeeks(state.baby.birthDate);
+  const ageMonths = getAgeInMonths(state.baby.birthDate);
+  const relevantGuides = [];
+
+  // Determine which guides are relevant based on age
+  if (ageWeeks <= 4) {
+    relevantGuides.push({ id: 'jaundice', title: 'Gulsot', icon: '🟡' });
+    relevantGuides.push({ id: 'umbilical', title: 'Navlepleje', icon: '🩹' });
+    relevantGuides.push({ id: 'sids', title: 'Sikker søvn', icon: '😴' });
+  }
+
+  if (ageWeeks <= 16) {
+    relevantGuides.push({ id: 'colic', title: 'Kolik', icon: '👶' });
+  }
+
+  if (ageMonths >= 4 && ageMonths <= 12) {
+    relevantGuides.push({ id: 'allergy', title: 'Allergi', icon: '🥚' });
+    relevantGuides.push({ id: 'sun', title: 'Solbeskyttelse', icon: '☀️' });
+  }
+
+  // Always show fever guide for babies under 1 year
+  if (ageMonths < 12) {
+    relevantGuides.unshift({ id: 'fever', title: 'Feber', icon: '🌡️' });
+  }
+
+  if (relevantGuides.length === 0) {
+    container.parentElement.classList.add('hidden');
+    return;
+  }
+
+  container.parentElement.classList.remove('hidden');
+
+  relevantGuides.slice(0, 4).forEach(guide => {
+    const chip = createElement('button', 'relevant-guide-chip');
+    chip.appendChild(createElement('span', 'chip-icon', guide.icon));
+    chip.appendChild(createElement('span', 'chip-text', guide.title));
+    chip.addEventListener('click', () => {
+      const guideCard = document.getElementById(`${guide.id}-guide`);
+      if (guideCard) {
+        // Expand parent group if collapsed
+        const parentGroup = guideCard.closest('.guide-group-content');
+        if (parentGroup && parentGroup.classList.contains('collapsed')) {
+          const header = parentGroup.previousElementSibling;
+          if (header) {
+            header.setAttribute('aria-expanded', 'true');
+            parentGroup.classList.remove('collapsed');
+          }
+        }
+        guideCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        guideCard.classList.add('guide-highlight');
+        setTimeout(() => guideCard.classList.remove('guide-highlight'), 2000);
+      }
+    });
+    container.appendChild(chip);
+  });
+
+  // Auto-expand newborn group if baby is newborn
+  if (ageWeeks <= 4) {
+    const newbornHeader = document.querySelector('[data-group="newborn"]');
+    const newbornContent = document.getElementById('guide-group-newborn');
+    if (newbornHeader && newbornContent) {
+      newbornHeader.setAttribute('aria-expanded', 'true');
+      newbornContent.classList.remove('collapsed');
+    }
+  }
+}
+
 function openSettings() {
   if (!state.baby) return;
 
   document.getElementById('edit-name').value = state.baby.name;
   document.getElementById('edit-birth-date').value = state.baby.birthDate;
   document.getElementById('edit-feeding-type').value = state.baby.feedingType;
+  document.getElementById('edit-simple-view').checked = state.simpleView;
 
   document.getElementById('settings-modal').classList.remove('hidden');
 }
@@ -1625,6 +1996,7 @@ function closeSettings() {
 function renderAll() {
   renderHeader();
   renderReminders();
+  renderQuickView();
   renderDashboard();
   renderTimeline();
   renderProgress();
@@ -1655,13 +2027,44 @@ function init() {
   document.getElementById('settings-btn').addEventListener('click', openSettings);
   document.getElementById('close-settings').addEventListener('click', closeSettings);
   document.getElementById('reset-data').addEventListener('click', handleResetData);
-  document.querySelector('.tabs').addEventListener('click', handleTabClick);
+
+  // Tab navigation
+  document.querySelector('.tabs-main').addEventListener('click', handleTabClick);
+  document.getElementById('more-tabs-btn').addEventListener('click', handleMoreTabsClick);
+  document.getElementById('tabs-dropdown').addEventListener('click', handleTabClick);
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('tabs-dropdown');
+    const moreBtn = document.getElementById('more-tabs-btn');
+    if (!dropdown.contains(e.target) && !moreBtn.contains(e.target)) {
+      dropdown.classList.add('hidden');
+      moreBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Guide group toggles
+  document.querySelectorAll('.guide-group-header').forEach(header => {
+    header.addEventListener('click', handleGuideGroupToggle);
+  });
 
   // Week view navigation
   document.getElementById('week-prev').addEventListener('click', () => navigateWeek(-1));
   document.getElementById('week-next').addEventListener('click', () => navigateWeek(1));
   document.getElementById('current-week-badge').addEventListener('click', goToCurrentWeek);
   document.getElementById('week-today').addEventListener('click', goToCurrentWeek);
+
+  // Week view toggle
+  document.getElementById('week-view-detailed').addEventListener('click', () => handleWeekViewToggle('detailed'));
+  document.getElementById('week-view-simple').addEventListener('click', () => handleWeekViewToggle('simple'));
+
+  // Quick actions
+  document.getElementById('quick-mark-all').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (confirm('Markér alle aktuelle milepæle som opnået?')) {
+      markAllCurrentMilestones();
+    }
+  });
 
   // Close modals on outside click
   document.getElementById('settings-modal').addEventListener('click', (e) => {

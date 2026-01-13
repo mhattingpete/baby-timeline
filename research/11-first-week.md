@@ -8,6 +8,15 @@
 | ammenet.dk - FAQ De første dage | https://ammenet.dk/faq-de-foerste-dage/ | Semi-official - Danish Breastfeeding Organization |
 | ammenet.dk - Vægtøgning | https://ammenet.dk/wiki-artikel/vaegtoegning/ | Semi-official - Danish Breastfeeding Organization |
 | Sundhedsstyrelsen - Tjek Bleen | https://www.sst.dk/da/amning | Official - Danish Health Authority |
+| Den Første Tid - Tjek Baby Skema | https://www.denforstetid.dk/wp-content/uploads/2025/01/tjek-baby-skema.pdf | Semi-official - Kompetencecenter for Amning |
+
+### About Tjek Baby
+
+The **Tjek Baby** schema is a thriving assessment tool (trivselsskema) developed collaboratively by:
+- Maternity wards (fødesteder) in Herning and Holstebro
+- Health visiting services (Sundhedsplejen) in Herning, Holstebro, Struer, Lemvig, Ikast/Brande, and Ringkøbing/Skjern municipalities
+
+It is hosted by **Den Første Tid** (denforstetid.dk), operated by Kompetencecenter for Amning (Competence Center for Breastfeeding), which is part of Komiteen for Sundhedsoplysning (Committee for Health Information).
 
 ---
 
@@ -199,6 +208,59 @@ The first week is crucial for establishing feeding and monitoring that baby is g
 
 ---
 
+## Tjek Baby - Thriving Assessment (Trivselsvurdering)
+
+*Source: Den Første Tid - Tjek Baby Skema*
+
+### Signs of Not Thriving (Tegn på mistrivsel)
+
+> **Danish:** "Barnet er vedvarende urolig og grædende, er svært at trøste, viser tegn på ikke at have det godt, eller er ikke interesseret i at spise."
+>
+> **English:** "The baby is persistently restless and crying, is hard to soothe, shows signs of not doing well, or is not interested in eating."
+
+| Sign | Danish | Concern Level |
+|------|--------|---------------|
+| Persistently restless and crying | Vedvarende urolig og grædende | Seek guidance |
+| Hard to soothe | Svært at trøste | Seek guidance |
+| Shows signs of not doing well | Viser tegn på ikke at have det godt | Seek guidance |
+| Not interested in eating | Ikke interesseret i at spise | Seek guidance |
+
+### Breastfeeding Guidance (Ammevejledning)
+
+> **Danish:** "Læg barnet hyppigere til, gerne 10-12 gange i døgnet, læg barnet til begge bryster under hver amning, sikre at barnet sutter aktivt, vedvarende og at I hører synkelyde, og opsøg gerne råd og vejledning hos sundhedspersonale."
+>
+> **English:** "Put the baby to the breast more frequently, preferably 10-12 times a day, put the baby to both breasts during each feeding, ensure the baby sucks actively and persistently and that you hear swallowing sounds, and seek advice and guidance from healthcare professionals."
+
+| Recommendation | Danish | Details |
+|----------------|--------|---------|
+| Frequent feeding | Hyppigere amning | 10-12 times per day |
+| Both breasts | Begge bryster | Each feeding session |
+| Active sucking | Aktiv sutning | Persistent, with swallowing sounds |
+| Seek guidance | Opsøg vejledning | From healthcare professionals |
+
+### Recommendations When Baby is Unsettled (Anbefalinger ved uro)
+
+> **Danish:** "Forsøg at opfylde barnets behov for mad, bleskift, søvn, ro, tæt kontakt, og søg råd og vejledning hos sundhedsplejersken, som sammen med jer vil forsøge at finde forklaringer."
+>
+> **English:** "Try to meet the baby's needs for food, diaper change, sleep, calm, close contact, and seek advice and guidance from the health visitor, who together with you will try to find explanations."
+
+| Need to Check | Danish |
+|---------------|--------|
+| Hunger | Mad |
+| Diaper change | Bleskift |
+| Sleep | Søvn |
+| Calm environment | Ro |
+| Close contact | Tæt kontakt |
+
+### Where to Get Help (Hvor kan man få hjælp)
+
+| Resource | Danish | Description |
+|----------|--------|-------------|
+| Maternity ward | Fødested | Birth hospital/clinic |
+| Health visitor | Sundhedsplejerske | Municipal health visitor |
+
+---
+
 ## JSON Data Structure
 
 ```json
@@ -327,3 +389,4 @@ Babies often cluster feed (feed very frequently) especially in the evenings duri
 2. ammenet.dk - FAQ De første dage: https://ammenet.dk/faq-de-foerste-dage/
 3. ammenet.dk - Vægtøgning: https://ammenet.dk/wiki-artikel/vaegtoegning/
 4. Sundhedsstyrelsen - Amning og ernæring: https://www.sst.dk/da/amning
+5. Den Første Tid - Tjek Baby Skema: https://www.denforstetid.dk/wp-content/uploads/2025/01/tjek-baby-skema.pdf

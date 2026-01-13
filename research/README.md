@@ -69,6 +69,7 @@ Once you've verified the data, implementation can proceed.
 | Source | URL | Description |
 |--------|-----|-------------|
 | **Ammenet.dk** | https://ammenet.dk/ | Danish Breastfeeding Committee |
+| **Den Første Tid** | https://www.denforstetid.dk/ | Kompetencecenter for Amning (part of Komiteen for Sundhedsoplysning) |
 | **Netsundhedsplejerske** | https://www.netsundhedsplejerske.dk/ | Professional health visitor resource |
 
 ### Educational Sources (Cross-referenced)
